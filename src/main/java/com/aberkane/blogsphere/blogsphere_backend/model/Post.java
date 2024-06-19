@@ -3,8 +3,11 @@ package com.aberkane.blogsphere.blogsphere_backend.model;
 import java.util.List;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 
 @Entity
+@AllArgsConstructor
+
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,6 +21,15 @@ public class Post {
 
     @OneToMany(mappedBy = "post")
     private List<Comment> comments;
+
+    public Post() {
+    }
+
+    public Post(String title, String content, User author) {
+        this.title = title;
+        this.content = content;
+        this.author = author;
+    }
 
     public Long getId() {
         return id;
@@ -47,6 +59,7 @@ public class Post {
         return author;
     }
 
+
     public void setAuthor(User author) {
         this.author = author;
     }
@@ -58,6 +71,8 @@ public class Post {
     public void setComments(List<Comment> comments) {
         this.comments = comments;
     }
+
+
 
     @Override
     public String toString() {

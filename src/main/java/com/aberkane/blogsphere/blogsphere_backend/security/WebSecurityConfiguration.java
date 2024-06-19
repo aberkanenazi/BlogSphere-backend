@@ -3,7 +3,7 @@ package com.aberkane.blogsphere.blogsphere_backend.security;
 import com.aberkane.blogsphere.blogsphere_backend.security.helper.AuthEntryPointJwt;
 import com.aberkane.blogsphere.blogsphere_backend.security.interceptor.AuthTokenFilter;
 import com.aberkane.blogsphere.blogsphere_backend.security.interceptor.PersonaInterceptor;
-import com.aberkane.blogsphere.blogsphere_backend.services.UserDetailsImpl;
+import com.aberkane.blogsphere.blogsphere_backend.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,7 +13,6 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,7 +24,7 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 @EnableWebSecurity
 public class WebSecurityConfiguration {
     @Autowired
-    UserDetailsImpl userDetailsService;
+    UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private AuthEntryPointJwt unauthorizedHandler;
@@ -71,21 +70,20 @@ public class WebSecurityConfiguration {
             "/auth/api/**"
     };
 
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .exceptionHandling(httpSecurityExceptionHandlingConfigurer -> httpSecurityExceptionHandlingConfigurer.authenticationEntryPoint(unauthorizedHandler))
-                .sessionManagement(httpSecuritySessionManagementConfigurer -> httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(matchers -> {
-                    matchers.requestMatchers("/api/v1/user/**").hasAnyRole("ADMIN");
-                    matchers.requestMatchers(AUTH_WHITE_LIST).permitAll();
-                    //matchers.requestMatchers(HttpMethod.OPTIONS, "/api/user").permitAll();
-
-                    matchers.anyRequest().authenticated();
-                }).addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
+                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exceptionHandling -> exceptionHandling.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorizeRequests -> {
+                    authorizeRequests.requestMatchers("/api/v1/user/**").hasAnyRole("ADMIN");
+                    authorizeRequests.requestMatchers(AUTH_WHITE_LIST).permitAll();
+                    authorizeRequests.anyRequest().authenticated();
+                })
+                .addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(personaInterceptor(), BasicAuthenticationFilter.class)
-                .authenticationProvider(authenticationProvider()).build();
+                .authenticationProvider(authenticationProvider())
+                .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.aberkane.blogsphere.blogsphere_backend.security.helper;
 
+import com.aberkane.blogsphere.blogsphere_backend.services.UserDetailsImpl;
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ public class JwtUtil {
 
     public LoginResponseDto generateJwtToken(Authentication authentication) {
 
-        UserDetailsServiceImpl userPrincipal = (UserDetailsServiceImpl) authentication.getPrincipal();
+        UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
         Optional<User> user = userRepository.findByEmail(userPrincipal.getUsername());
         return LoginResponseDto.builder().token(Jwts.builder()
                 .setSubject((userPrincipal.getUsername()))

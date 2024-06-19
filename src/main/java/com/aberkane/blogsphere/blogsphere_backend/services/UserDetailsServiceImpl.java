@@ -1,72 +1,35 @@
 package com.aberkane.blogsphere.blogsphere_backend.services;
 
+
 import com.aberkane.blogsphere.blogsphere_backend.model.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.aberkane.blogsphere.blogsphere_backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+@Service
+public class UserDetailsServiceImpl implements UserDetailsService {
 
-public class UserDetailsServiceImpl implements UserDetails {
-
-    private String email;
-    @JsonIgnore
-    private String password;
-
-    private Collection<? extends GrantedAuthority> authorities;
-
-    public UserDetailsServiceImpl(String email, String password,
-                                  Collection<? extends GrantedAuthority> authorities) {
-        this.email = email;
-        this.password = password;
-        this.authorities = authorities;
-    }
-
-    public static UserDetailsServiceImpl build(User user) {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        authorities.add(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName()));
-        return new UserDetailsServiceImpl(
-                user.getEmail(),
-                user.getPassword(),
-                authorities);
-    }
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities;
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
+        return UserDetailsImpl.build(user);
     }
 
-    @Override
-    public String getPassword() {
-        return password;
+    public User loadUser(String email)
+    {
+       return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User Not Found with email: " + email));
     }
 
-    @Override
-    public String getUsername() {
-        return email;
+    public User getCurrentUser()
+    {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return loadUser(userDetails.getUsername());
     }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
-    }
-
 }

@@ -2,6 +2,7 @@ package com.aberkane.blogsphere.blogsphere_backend.security.interceptor;
 
 import com.aberkane.blogsphere.blogsphere_backend.security.helper.JwtUtil;
 import com.aberkane.blogsphere.blogsphere_backend.services.UserDetailsImpl;
+import com.aberkane.blogsphere.blogsphere_backend.services.UserDetailsServiceImpl;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +26,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private UserDetailsImpl userDetailsImpl;
+    private UserDetailsServiceImpl userDetailsService;
 
 
     @Override
@@ -42,15 +43,19 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 log.info("Incoming user from {}", request.getLocalAddr());
                 log.info("Incoming user from {}",request.getHeaderNames());
 
-                UserDetails userDetails = userDetailsImpl.loadUserByUsername(username);
-
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                 jwtUtil.setRequestContextDetails(userDetails,request);
+                if (userDetails instanceof UserDetailsImpl) {
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                filterChain.doFilter(request, response);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    filterChain.doFilter(request, response);
+                    logger.info("Set Authentication for user: " + username);
+                } else {
+                    logger.error("UserDetails is not an instance of UserDetailsImpl");
+                }
             }
             else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

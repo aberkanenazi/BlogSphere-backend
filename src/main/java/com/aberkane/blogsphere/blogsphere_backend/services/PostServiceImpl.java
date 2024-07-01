@@ -23,8 +23,10 @@ public class PostServiceImpl  implements PostService{
 
     @Override
     public Page<PostDto> getAllPosts(Pageable pageable) {
+        Page<Post> posts = postRepository.findAll(pageable);
+        Page<PostDto> postDtos = posts.map(post -> modelMapper.map(post, PostDto.class));
 
-        return modelMapper.map(postRepository.findAll(pageable), new TypeToken<Page<PostDto>>(){}.getType());
+        return postDtos;
     }
 
     @Override
@@ -51,6 +53,8 @@ public class PostServiceImpl  implements PostService{
 
     @Override
     public Page<PostDto> getPostsByUserId(Pageable pageable, Long userId) {
-        return modelMapper.map(postRepository.findByAuthorId(pageable, userId), new TypeToken<Page<PostDto>>(){}.getType());
+        Page<Post> posts = postRepository.findByAuthorId(pageable, userId);
+        Page<PostDto> postDtos = posts.map(post -> modelMapper.map(post, PostDto.class));
+        return postDtos;
     }
 }

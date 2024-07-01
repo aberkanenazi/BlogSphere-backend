@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,8 +31,9 @@ public class PostController {
     private UserDetailsServiceImpl userDetailsService;
 
     @GetMapping("/")
-    public Page<PostDto> getAllPost(Pageable pageable) {
-        return postService.getAllPosts(pageable);
+    public ResponseEntity<Page<PostDto>> getAllPost(@PageableDefault(page = 0, size = 10) Pageable pageable) {
+        Page<PostDto> posts = postService.getAllPosts(pageable);
+        return ResponseEntity.ok(posts);
     }
 
     @GetMapping("/{id}")
@@ -64,9 +67,9 @@ public class PostController {
     }
 
     @GetMapping("/my-posts")
-    public Page<PostDto> getMyPosts(Pageable pageable, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<Page<PostDto>> getMyPosts(@PageableDefault(page = 0, size = 10)Pageable pageable, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         User user = userDetailsService.loadUser(userDetails.getUsername());
-        return postService.getPostsByUserId(pageable, user.getId());
+        return ResponseEntity.ok(postService.getPostsByUserId(pageable, user.getId()));
     }
 
 

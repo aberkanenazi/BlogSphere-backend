@@ -1,5 +1,9 @@
 package com.aberkane.blogsphere.blogsphere_backend.services;
 
+import com.aberkane.blogsphere.blogsphere_backend.dto.CommentDto;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.TypeToken;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -9,37 +13,42 @@ import com.aberkane.blogsphere.blogsphere_backend.repository.CommentRepository;
 
 @Service
 public class CommentServiceImpl  implements CommentService{
-
+    @Autowired
     CommentRepository commentRepository;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     @Override
-    public Page<Comment> getAllComments(Pageable pageable) {
-        return commentRepository.findAll(pageable);
+    public Page<CommentDto> getAllComments(Pageable pageable) {
+        return modelMapper.map(commentRepository.findAll(pageable), new TypeToken<Page<CommentDto>>(){}.getType());
     }
 
     @Override
-    public Comment getCommentById(Long id) {
-        return commentRepository.findById(id).orElse(null);
+    public CommentDto getCommentById(Long id) {
+        Comment comment = commentRepository.findById(id).orElseThrow(()-> new RuntimeException("Comment not found"));
+        return modelMapper.map(comment, CommentDto.class);
     }
 
     @Override
-    public Comment createComment(Comment comment) {
-        return commentRepository.save(comment);
+    public CommentDto createComment(Comment comment) {
+        return modelMapper.map(commentRepository.save(comment), CommentDto.class);
     }
 
     @Override
-    public Comment updateComment(Comment comment) {
-        return commentRepository.save(comment);
+    public CommentDto updateComment(Comment comment) {
+        return modelMapper.map(commentRepository.save(comment), CommentDto.class);
     }
 
     @Override
-    public void deleteComment(Long id) {
+    public String deleteComment(Long id) {
         commentRepository.deleteById(id);
+        return "Successfully deleted";
     }
 
     @Override
-    public Page<Comment> getCommentsByPostId(Pageable pageable, Long postId) {
-        return commentRepository.findByPostId(pageable, postId);
+    public Page<CommentDto> getCommentsByPostId(Pageable pageable, Long postId) {
+        return modelMapper.map(commentRepository.findByPostId(pageable, postId), new TypeToken<Page<CommentDto>>(){}.getType());
     }
 
 }

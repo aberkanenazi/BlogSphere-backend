@@ -33,5 +33,17 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Comment> comments;
 
-
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", locked=" + locked +
+                ", role=" + role +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", posts=" + posts +
+                ", comments=" + comments +
+                '}';
+    }
 }

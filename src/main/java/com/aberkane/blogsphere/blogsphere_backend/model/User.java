@@ -24,7 +24,7 @@ public class User {
     private String password;
     private boolean locked;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "role_id")
     private UserRoles role;
     private String phoneNumber;
